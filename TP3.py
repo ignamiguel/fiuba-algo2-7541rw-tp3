@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import sys
 
 #define CANT_ARGS
