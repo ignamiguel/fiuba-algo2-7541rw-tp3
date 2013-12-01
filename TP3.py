@@ -171,6 +171,16 @@ for line in fjug:
 
 fjug.close()
 
+# Obtener comando
+try:
+    comando = raw_input()
+    while comando != None:
+		print comando
+		comando = raw_input()
+except EOFError:
+    quit()
+
+
 
 
 
