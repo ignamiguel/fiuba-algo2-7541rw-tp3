@@ -115,7 +115,9 @@ grafo = grafo_t()
 grafo.ubicarPoloNorte(id_esquina_polo_norte)
 
 # Defino la capacidad del trineo
-grafo.agregarCapacidadTrineo(capacidad)
+capacidad = capacidad.replace('#','')
+
+grafo.agregarCapacidadTrineo(int(capacidad))
 
 # Abro el archivo del mapa
 fmapa = open(arch_mapa,'r')
