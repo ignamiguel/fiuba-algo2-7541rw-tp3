@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
 import sys
+import heapq
+
+from fabrica import *
+from juguete import *
+from grafo import *
 
 
 class esquina_t:
@@ -19,7 +24,7 @@ class esquina_t:
 			return false
 		self.adyacentes.append(a)
 		
-	def agregarFabrica(self, f):
+	def ubicarFabrica(self, f):
 		self.fabrica = f
 
 
@@ -31,67 +36,20 @@ class calle_t:
 		self.final = esquina_final
 
 
-class grafo_t:
+
+""" *********************************************************
+							UTILS
+********************************************************* """
+
+def obtenerComandoConParams(texto):
+	partes = texto.split(' ')
+	return partes
+
+def obtenerParams(texto):
+	partes = texto.split(',')	
+	return partes
 		
-	def __init__(self):
-		self.vertices = {}
-		self.aristas = {}
-		self.fabricas = {}
-		self.poloNorte = None
-		self.capacidadTrineo = None
-	
-	def agregarVertice(self, v):
-		self.vertices[v.id] = v
-	
-	def agregarArista(self, a):
-		self.aristas[a.id] = a
-		
-		v = self.vertices.get(a.inicio, None)
-		if (v != None):
-			v.agregarAdyacente(a)
-				
-	def agregarFabrica(self, f):
-		self.fabricas[f.id] = f
-		v = self.vertices.get(f.esquina, None)
-		if (v != None):
-			v.agregarFabrica(f)
-	
-	def agregarJuguete(self, j):
-		f = self.fabricas.get(j.fabrica, None)
-		if(f != None):
-			v = self.vertices.get(f.esquina, None)
-			if(v != None):
-				v.fabrica.agregarJuguete(j)
-	
-	def ubicarPoloNorte(self, idEsquinaPoloNorte):
-		self.poloNorte = idEsquinaPoloNorte
-		
-	
-	def agregarCapacidadTrineo(self, capacidad):
-		self.capacidadTrineo = capacidad
-
-
-class fabrica_t:
-	
-	def __init__(self, id, esquina, horario_entrada, horario_salida):
-		self.id = id
-		self.esquina = esquina
-		self.horario_entrada = horario_entrada
-		self.horario_salida = horario_salida
-		self.juguetes = []
-	
-	def agregarJuguete(self, j):
-		self.juguetes.append(j)
-
-
-class juguete_t:
-	
-	def __init__(self, id, fabrica, valor, peso):
-		self.id = id
-		self.fabrica = fabrica
-		self.valor = valor
-		self.peso = peso
-
+					
 """ ********************************************************* 
 							MAIN
 ********************************************************* """
@@ -119,19 +77,19 @@ capacidad = capacidad.replace('#','')
 
 grafo.agregarCapacidadTrineo(int(capacidad))
 
+
 # Abro el archivo del mapa
 fmapa = open(arch_mapa,'r')
 
-# Las esquinas del mapa son vertices
+# Las esquinas del mapa representan vertices
 cantidad_esquinas = fmapa.readline()
 
 
-
-# Leo n veces para almacenar las esquinas
+# Leo "cantidad_esquinas" veces para almacenar las esquinas
 for x in range(0,int(cantidad_esquinas)):
 	linea = fmapa.readline()
 	campos = linea.split(',')
-	e = esquina_t(campos[0],campos[1],campos[2],campos[3],campos[4])
+	e = esquina_t(campos[0],campos[1],campos[2],campos[3],campos[4].rstrip())
 	
 	# Guardo las esquinas como vertices del grafo
 	grafo.agregarVertice(e)
@@ -139,13 +97,13 @@ for x in range(0,int(cantidad_esquinas)):
 # Las calles representan aristas
 cantidad_calles = fmapa.readline()
 
+# print "Listo Vertices"
 
-
-# Leo n veces para almacenar las calles
+# Leo "cantidad_calles" veces para almacenar las calles
 for x in range(0,int(cantidad_calles)):
 	linea = fmapa.readline()
 	campos = linea.split(',')
-	c = calle_t(campos[0],campos[1],campos[2])
+	c = calle_t(campos[0],campos[1],campos[2].rstrip())
 	
 	# Guardo las calles como artistar del grafo
 	grafo.agregarArista(c)
@@ -156,35 +114,44 @@ fmapa.close()
 ffab = open(arch_fabricas,'r')
 for line in ffab:
 	campos = line.split(',')
-	f = fabrica_t(campos[0], campos[1], campos[2], campos[3])
+	f = fabrica_t(campos[0], campos[1], campos[2], campos[3].rstrip())
 	grafo.agregarFabrica(f)
 
 ffab.close()
 
 
 # Agrego los juguetes
+
 fjug = open(arch_juguetes,'r')
 for line in fjug:
 	campos = line.split(',')
-	j = juguete_t(campos[1], campos[0],campos[2],campos[3])
+	j = juguete_t(campos[1], campos[0],campos[2],campos[3].rstrip())
 	grafo.agregarJuguete(j)
 
 fjug.close()
 
 # Obtener comando
-try:
-    comando = raw_input()
-    while comando != None:
-		print comando
-		comando = raw_input()
+try:	
+    entrada = raw_input()
+    while entrada != None:		
+		comandoConParams = obtenerComandoConParams(entrada)		
+		comando = comandoConParams[0]				
+		
+		if(comando == "listar_fabricas"):
+			grafo.listarFabricas()
+		
+		elif(comando == "valuar_juguetes"):
+			params = obtenerParams(comandoConParams[1])
+			grafo.valuarJuguetes(params[0])
+		
+		entrada = raw_input()
 except EOFError:
     quit()
 
 
 
 
-
-
+	
 
 
 
