@@ -3,38 +3,10 @@
 import sys
 import heapq
 
+from mapa import *
 from fabrica import *
 from juguete import *
 from grafo import *
-
-
-class esquina_t:
-	
-	def __init__(self, id, x, y, latitud, longitud):
-		self.adyacentes = []
-		self.id = id
-		self.x = x
-		self.y = y
-		self.latitud = latitud
-		self.longitud = longitud
-		self.fabrica = None
-		
-	def agregarAdyacente(self, a):
-		if (a in self.adyacentes):
-			return false
-		self.adyacentes.append(a)
-		
-	def ubicarFabrica(self, f):
-		self.fabrica = f
-
-
-class calle_t:
-	
-	def __init__(self, id, esquina_inicial, esquina_final):
-		self.id = id
-		self.inicio = esquina_inicial
-		self.final = esquina_final
-
 
 
 """ *********************************************************
@@ -130,6 +102,8 @@ for line in fjug:
 
 fjug.close()
 
+# print "Listo"
+
 # Obtener comando
 try:	
     entrada = raw_input()
@@ -138,11 +112,18 @@ try:
 		comando = comandoConParams[0]				
 		
 		if(comando == "listar_fabricas"):
-			grafo.listarFabricas()
+			grafo.listarFabricas(True)
 		
 		elif(comando == "valuar_juguetes"):
 			params = obtenerParams(comandoConParams[1])
-			grafo.valuarJuguetes(params[0])
+			grafo.valuarJuguetes(params[0], True)
+		
+		elif(comando == "valuar_juguetes_total"):
+			grafo.valuarJuguetesTotal()
+		
+		elif(comando == "camino_optimo"):
+			param = obtenerParams(comandoConParams[1])
+			grafo.obtenerCaminoOptimo(param[0])
 		
 		entrada = raw_input()
 except EOFError:

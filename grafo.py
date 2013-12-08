@@ -24,14 +24,17 @@ class grafo_t:
 		
 	def __init__(self):
 		self.vertices = {}
+		self.vertices_lista = []
 		self.aristas = {}
 		self.fabricas = {}
 		self.fabricas_lista = []
 		self.poloNorte = None
 		self.capacidadTrineo = None
+		self.lista_optima = []
 	
 	def agregarVertice(self, v):
 		self.vertices[v.id] = v
+		self.vertices_lista.append(v)
 	
 	def agregarArista(self, a):
 		self.aristas[a.id] = a
@@ -61,10 +64,11 @@ class grafo_t:
 		# Agrego el item a la lista de fabricas
 		self.fabricas_lista.append(item)
 	
+	
 	def agregarJuguete(self, j):
 		f = self.fabricas.get(j.fabrica, None)
 		if(f == None):
-			print "Fabrica {0} no existe".format(j.fabrica)
+			print "Error: la fabrica con id {0} no existe".format(j.fabrica)
 			return
 		
 		f.insertarJuguete(j)	
@@ -79,7 +83,7 @@ class grafo_t:
 		
 		
 	# Listar Fabricas
-	def listarFabricas(self):
+	def listarFabricas(self, imprimir):
 		
 		# Ordeno las fabricas por 
 		# horario de cierre
@@ -89,13 +93,13 @@ class grafo_t:
 		
 		# Declaro una lista para guardar las 
 		# mejores opciones
-		lista_optima = []
+		self.lista_optima = []
 		
 		for i in range(len(self.fabricas_lista) - 1):					
 			
 			if(i == 0):
 				f1 = self.fabricas_lista[i]
-				lista_optima.append(f1)
+				self.lista_optima.append(f1)
 				i = i + 1
 				f2 = self.fabricas_lista[i]			
 			else:
@@ -105,23 +109,21 @@ class grafo_t:
 			# de f2 es mayor o igual
 			# al horario de cierre de f1			
 			if(f2[1] >= f1[0]):
-				lista_optima.append(f2)
+				self.lista_optima.append(f2)
 				f1 = f2				
 			
 		# Tengo las mejores opciones
-		print "Cantidad: {0}".format(len(lista_optima))
-		
-		for item in lista_optima:
-			
-			id = item[2]
-			
-			print "{0}, {1}, {2}".format(id,darFormatoHora(item[1]),darFormatoHora(item[0]))
+		if(imprimir):
+			print "Cantidad: {0}".format(len(self.lista_optima))
+			for item in self.lista_optima:
+				id = item[2]
+				print "{0}, {1}, {2}".format(id,darFormatoHora(item[1]),darFormatoHora(item[0]))
 
 	# Valuar juguetes
-	def valuarJuguetes(self, fabricaId):
+	def valuarJuguetes(self, fabricaId, imprimir):
 		f = self.fabricas.get(fabricaId, None)
 		if(f == None):
-			print "Fabrica {0} no existe".format(j.fabrica)
+			print "Error: la fabrica con id {0} no existe".format(fabricaId)
 			return			
 		
 		# Obtengo la cantidad de juguetes
@@ -130,28 +132,82 @@ class grafo_t:
 		# Genero un vector W de peso y V de valor
 		W = []
 		V = []
-		for i in range(len(f.juguetes)):
-			W.append(f.juguetes[i].peso)
-			V.append(f.juguetes[i].valor)
 		
-		print W
-		print V		
+		# El elemento nulo pesa 0
+		# y su valor es 0
+		W.append(0)
+		V.append(0)
 		
-		return
+		# Agrego los pesos y los valores
+		# Convierto las variables a int
+		for i in range(n):
+			W.append(int(f.juguetes[i].peso))
+			V.append(int(f.juguetes[i].valor))		
+		
+		
 		# Declaro una matriz A 
 		# para guardar la mejor opcion
 		# inicializada en 0
 		A = [[0 for x in xrange(self.capacidadTrineo + 1)] for x in xrange(n + 1)]
 		
-		for i in range(1, n + 1):
-			for j in range(1, self.capacidadTrineo + 1):
+		for i in xrange(1, n + 1):
+			for j in xrange(1, self.capacidadTrineo + 1):				
 				if(W[i] > j):
-					A[i][j] = A[i - 1][j]
+					A[i][j] = A[i - 1][j]					
 				else:
-					A[i][j] = max(A[i - 1][j], V[i] + A[i - 1][j - W[i]])
+					A[i][j] = max(A[i - 1][j], V[i] + A[i - 1][j - W[i]])							
 		
-		print A
-		#print "Total: {0} Sonrisas".format(A[n-1][self.capacidadTrineo])
+		if(imprimir):
+			print "Total: {0} Sonrisas".format(A[n][self.capacidadTrineo])
+		
+		return A[n][self.capacidadTrineo]
+	
+	# Valuar juguetes Total
+	def valuarJuguetesTotal(self):
+		cont = 0
+				
+		# Si la lista optima no esta cargada,
+		# la cargo
+		if(len(self.lista_optima) == 0):
+			self.listarFabricas(False)
+		
+		for f in self.lista_optima:
+			sonrisas = None
+			# Convierto a string el Id de la fabrica
+			# para buscarlo en el diccionario
+			id = str(f[2])
+			sonrisas = self.valuarJuguetes(id,False)
+			if(sonrisas != None):
+				cont = cont + sonrisas
+				
+		
+		print "Total: {0} Sonrisas".format(cont)
+	
+	# Camino Optimo
+	def obtenerCaminoOptimo(self,fabricaId):
+		# Busco la fabrica
+		f = self.fabricas.get(fabricaId, None)
+		if(f == None):
+			print "Error: la fabrica con id {0} no existe".format(fabricaId)
+			return	
+		
+		# Defino una distancia infinita
+		infinito = -1
+		
+		# Declaro un vector de distancias
+		D = [infinito for x in xrange(len(self.vertices_lista))]
+		
+		# Declaro un vector de padres
+		P = [0 for x in xrange(len(self.vertices_lista))]
+		
+		print D
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		
