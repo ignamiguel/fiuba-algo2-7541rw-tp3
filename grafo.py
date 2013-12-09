@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import sys
+import heapq
+import math
 
 
 def darFormatoHora(n):		
@@ -19,6 +21,14 @@ def darFormatoHora(n):
 	
 	return "{0}:{1}".format(h,m)
 
+def distanciaEntreVertices(a,b):	
+	
+	# Calcula distancia desde un
+	# vertice A y otro B
+	x = float(b.x) - float(a.x)
+	y = float(b.y) - float(a.y)	
+	
+	return math.sqrt(math.pow(x,2) + math.pow(y,2))	
 
 class grafo_t:
 		
@@ -40,8 +50,11 @@ class grafo_t:
 		self.aristas[a.id] = a
 		
 		v = self.vertices.get(a.inicio, None)
-		if (v != None):
-			v.agregarAdyacente(a)
+		if (v == None):
+			print "Esquina {0} no existe".format(a.inicio)
+			return
+		
+		v.agregarCalle(a)
 				
 	def agregarFabrica(self, f):
 		self.fabricas[f.id] = f
@@ -64,7 +77,6 @@ class grafo_t:
 		# Agrego el item a la lista de fabricas
 		self.fabricas_lista.append(item)
 	
-	
 	def agregarJuguete(self, j):
 		f = self.fabricas.get(j.fabrica, None)
 		if(f == None):
@@ -73,15 +85,18 @@ class grafo_t:
 		
 		f.insertarJuguete(j)	
 		
-	
 	def ubicarPoloNorte(self, idEsquinaPoloNorte):
-		self.poloNorte = idEsquinaPoloNorte
+		# Busco el vertice donde se ubica el Polo Norte
+		v = self.vertices.get(idEsquinaPoloNorte, None)		
+		if(v == None):
+			print "Error: la esquina {0} no existe".format(idEsquinaPoloNorte)
+			return		
 		
-	
+		self.poloNorte = v
+		
 	def agregarCapacidadTrineo(self, capacidad):
 		self.capacidadTrineo = capacidad
-		
-		
+				
 	# Listar Fabricas
 	def listarFabricas(self, imprimir):
 		
@@ -185,22 +200,105 @@ class grafo_t:
 	
 	# Camino Optimo
 	def obtenerCaminoOptimo(self,fabricaId):
-		# Busco la fabrica
-		f = self.fabricas.get(fabricaId, None)
-		if(f == None):
+		# Busco la fabrica destino
+		fabrica_destino = self.fabricas.get(fabricaId, None)
+		if(fabrica_destino == None):
 			print "Error: la fabrica con id {0} no existe".format(fabricaId)
 			return	
-		
+			
+		# Busco el vertice destino
+		destino = self.vertices.get(fabrica_destino.esquina, None)
+		if(destino == None):
+			print "Error: la esquina con id {0} no existe".format(fabrica_destino.esquina)
+			return
+			
 		# Defino una distancia infinita
-		infinito = -1
+		INFINITO = sys.float_info.max
 		
 		# Declaro un vector de distancias
-		D = [infinito for x in xrange(len(self.vertices_lista))]
+		# inicializado en infinto
+		Distancia = [INFINITO for x in xrange(len(self.vertices_lista))]
 		
 		# Declaro un vector de padres
-		P = [0 for x in xrange(len(self.vertices_lista))]
+		Padres = [0 for x in xrange(len(self.vertices_lista))]
 		
-		print D
+		# Declaro un vector de visitados
+		Visitados = [False for x in xrange(len(self.vertices_lista))]
+		
+		# Obtengo el indice del Polo Norte
+		indicePolo = self.vertices_lista.index(self.poloNorte)		
+		
+		# Configuro la distancia al Polo Norte en 0
+		Distancia[indicePolo] = 0
+		
+		# Declaro un heap de minima
+		h = []
+		
+		# Declaro un tuple
+		fuente = [Distancia[indicePolo], self.poloNorte]		
+		
+		# Agrego el tuple al heap 
+		# para ser procesado
+		heapq.heappush(h, fuente)		
+		
+		# Proceso todos los nodos de la cola
+		while len(h) != 0:			
+			
+			# Extraigo el de menor distancia
+			u_tuple = heapq.heappop(h)
+			
+			u = u_tuple[1]			
+			
+			if(u == destino):
+				print "Estoy procesando el nodo destino, deberia terminar"
+				#break
+			
+			indice_u = self.vertices_lista.index(u)
+			
+			print "Procesando indice {0}".format(indice_u)
+			
+			# Lo marco como visitado
+			Visitados[indice_u] = True				
+			
+			
+			# Para todos los adyacentes
+			for a in u.calles:				
+				
+				# Busco el vertice final de la calle
+				vecino = self.vertices.get(a.final, None)
+				if(vecino == None):
+					print "Error: la esquina con id {0} no existe".format(a.final)				
+			
+				alt = Distancia[indice_u] + distanciaEntreVertices(u,vecino)			
+			
+				indice_v = self.vertices_lista.index(vecino)
+			
+				if(alt < Distancia[indice_v]):
+					# print "Actualizo la distancia ya que {0} < {1}".format(alt, Distancia[indice_v])
+					Distancia[indice_v] = alt
+					Padres[indice_v] = indice_u
+					if(not Visitados[indice_v]):
+						v_tuple = [Distancia[indice_v], vecino]
+						heapq.heappush(h, v_tuple)
+						
+		# Obtengo el indice
+		indice_destino = self.vertices_lista.index(destino)
+		
+		metros = Distancia[indice_destino]
+		
+		if(metros == sys.float_info.max):
+			print "Distancia es infinito"
+			return		
+		
+		print "Distancia: {0} metros".format(int(metros))
+		
+		
+			
+			
+			
+			
+		
+		
 		
 		
 		

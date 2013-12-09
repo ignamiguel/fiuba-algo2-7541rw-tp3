@@ -2,6 +2,7 @@
 
 import sys
 import heapq
+import math
 
 from mapa import *
 from fabrica import *
@@ -41,21 +42,16 @@ arch_mapa = sys.argv[5]
 # Creo un grafo
 grafo = grafo_t()
 
-# Ubico el Polo Norte
-grafo.ubicarPoloNorte(id_esquina_polo_norte)
-
 # Defino la capacidad del trineo
 capacidad = capacidad.replace('#','')
 
 grafo.agregarCapacidadTrineo(int(capacidad))
-
 
 # Abro el archivo del mapa
 fmapa = open(arch_mapa,'r')
 
 # Las esquinas del mapa representan vertices
 cantidad_esquinas = fmapa.readline()
-
 
 # Leo "cantidad_esquinas" veces para almacenar las esquinas
 for x in range(0,int(cantidad_esquinas)):
@@ -69,8 +65,6 @@ for x in range(0,int(cantidad_esquinas)):
 # Las calles representan aristas
 cantidad_calles = fmapa.readline()
 
-# print "Listo Vertices"
-
 # Leo "cantidad_calles" veces para almacenar las calles
 for x in range(0,int(cantidad_calles)):
 	linea = fmapa.readline()
@@ -82,6 +76,9 @@ for x in range(0,int(cantidad_calles)):
 
 fmapa.close()
 
+# Ubico el Polo Norte
+grafo.ubicarPoloNorte(id_esquina_polo_norte)
+
 # Agrego las fabricas
 ffab = open(arch_fabricas,'r')
 for line in ffab:
@@ -91,9 +88,7 @@ for line in ffab:
 
 ffab.close()
 
-
 # Agrego los juguetes
-
 fjug = open(arch_juguetes,'r')
 for line in fjug:
 	campos = line.split(',')
@@ -102,7 +97,7 @@ for line in fjug:
 
 fjug.close()
 
-# print "Listo"
+print "LISTO ****************************************************"
 
 # Obtener comando
 try:	
