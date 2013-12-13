@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+from juguete import *
 
 class fabrica_t:
 	
@@ -11,5 +12,9 @@ class fabrica_t:
 		self.horario_cierre = horario_cierre
 		self.juguetes = []
 	
-	def insertarJuguete(self, j):
+	def insertarJuguete(self, id, valor, peso):
+		# Creo un juguete
+		j = juguete_t(id, valor, peso)
+		
+		# Agrego el juguete a la lista
 		self.juguetes.append(j)

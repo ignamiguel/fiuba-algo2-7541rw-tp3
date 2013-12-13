@@ -4,6 +4,8 @@ import sys
 import heapq
 import math
 
+from mapa import *
+
 
 def darFormatoHora(n):		
 	horas = n/60
@@ -23,291 +25,150 @@ def darFormatoHora(n):
 
 def distanciaEntreVertices(a,b):	
 	
+	# print "Calculando distancia desde [{0}] a [{1}]".format(a.id, b.id)
+	
 	# Calcula distancia desde un
 	# vertice A y otro B
-	x = float(b.x) - float(a.x)
-	y = float(b.y) - float(a.y)	
+	x = b.x - a.x
+	y = b.y - a.y	
+	
+	# print "Las coordenadas son x={0} y={1}".format(x, y)
+	# print "Distancia {0}".format(math.sqrt(math.pow(x,2) + math.pow(y,2)))
+	# print "Presione una tecla para continuar..."
+	# raw_input()		
 	
 	return math.sqrt(math.pow(x,2) + math.pow(y,2))	
 
 class grafo_t:
 		
 	def __init__(self):
-		self.vertices = {}
-		self.vertices_lista = []
-		self.aristas = {}
-		self.fabricas = {}
-		self.fabricas_lista = []
+		self.vertices = [None]
 		self.poloNorte = None
-		self.capacidadTrineo = None
-		self.lista_optima = []
 	
-	def agregarVertice(self, v):
-		self.vertices[v.id] = v
-		self.vertices_lista.append(v)
+	def agregarVertice(self, id, x, y, latitud, longitud):
+		# Creo un vertice
+		v = vertice_t(id, x, y, latitud, longitud)		
+		
+		# Lo agrego a la lista
+		self.vertices.append(v)
 	
-	def agregarArista(self, a):
-		self.aristas[a.id] = a
+	def agregarArista(self, id, origen, destino):		
+		# Busco el vertice de origen			
+		v = self.vertices[origen]
 		
-		v = self.vertices.get(a.inicio, None)
-		if (v == None):
-			print "Esquina {0} no existe".format(a.inicio)
-			return
+		# Busco el vertice destino		
+		w = self.vertices[destino]		
 		
-		v.agregarCalle(a)
-				
-	def agregarFabrica(self, f):
-		self.fabricas[f.id] = f
-				
-		# Busco el vertice
-		v = self.vertices.get(f.esquina, None)
-		if (v == None):
-			print "Esquina {0} no existe".format(f.esquina)
-			return
-		
-		v.ubicarFabrica(f)
-		
-		# Convierto a int los atributos de f
-		# y los agrego como elementos de la lista item
-		item = []
-		item.append(int(f.horario_cierre))
-		item.append(int(f.horario_apertura))
-		item.append(int(f.id))		
-		
-		# Agrego el item a la lista de fabricas
-		self.fabricas_lista.append(item)
-	
-	def agregarJuguete(self, j):
-		f = self.fabricas.get(j.fabrica, None)
-		if(f == None):
-			print "Error: la fabrica con id {0} no existe".format(j.fabrica)
-			return
-		
-		f.insertarJuguete(j)	
+		# Las calles son doble mano
+		v.agregarVecino(w)
+		w.agregarVecino(v)	
 		
 	def ubicarPoloNorte(self, idEsquinaPoloNorte):
 		# Busco el vertice donde se ubica el Polo Norte
-		v = self.vertices.get(idEsquinaPoloNorte, None)		
+		v = self.vertices[idEsquinaPoloNorte]	
 		if(v == None):
-			print "Error: la esquina {0} no existe".format(idEsquinaPoloNorte)
-			return		
+			return False	
 		
 		self.poloNorte = v
-		
-	def agregarCapacidadTrineo(self, capacidad):
-		self.capacidadTrineo = capacidad
-				
-	# Listar Fabricas
-	def listarFabricas(self, imprimir):
-		
-		# Ordeno las fabricas por 
-		# horario de cierre
-		# horario de apertura
-		# id
-		self.fabricas_lista.sort()			
-		
-		# Declaro una lista para guardar las 
-		# mejores opciones
-		self.lista_optima = []
-		
-		for i in range(len(self.fabricas_lista) - 1):					
+		return True
 			
-			if(i == 0):
-				f1 = self.fabricas_lista[i]
-				self.lista_optima.append(f1)
-				i = i + 1
-				f2 = self.fabricas_lista[i]			
-			else:
-				f2 = self.fabricas_lista[i]			
-			
-			# Comparo si el horario de apertura
-			# de f2 es mayor o igual
-			# al horario de cierre de f1			
-			if(f2[1] >= f1[0]):
-				self.lista_optima.append(f2)
-				f1 = f2				
-			
-		# Tengo las mejores opciones
-		if(imprimir):
-			print "Cantidad: {0}".format(len(self.lista_optima))
-			for item in self.lista_optima:
-				id = item[2]
-				print "{0}, {1}, {2}".format(id,darFormatoHora(item[1]),darFormatoHora(item[0]))
-
-	# Valuar juguetes
-	def valuarJuguetes(self, fabricaId, imprimir):
-		f = self.fabricas.get(fabricaId, None)
-		if(f == None):
-			print "Error: la fabrica con id {0} no existe".format(fabricaId)
-			return			
-		
-		# Obtengo la cantidad de juguetes
-		n = len(f.juguetes)
-		
-		# Genero un vector W de peso y V de valor
-		W = []
-		V = []
-		
-		# El elemento nulo pesa 0
-		# y su valor es 0
-		W.append(0)
-		V.append(0)
-		
-		# Agrego los pesos y los valores
-		# Convierto las variables a int
-		for i in range(n):
-			W.append(int(f.juguetes[i].peso))
-			V.append(int(f.juguetes[i].valor))		
-		
-		
-		# Declaro una matriz A 
-		# para guardar la mejor opcion
-		# inicializada en 0
-		A = [[0 for x in xrange(self.capacidadTrineo + 1)] for x in xrange(n + 1)]
-		
-		for i in xrange(1, n + 1):
-			for j in xrange(1, self.capacidadTrineo + 1):				
-				if(W[i] > j):
-					A[i][j] = A[i - 1][j]					
-				else:
-					A[i][j] = max(A[i - 1][j], V[i] + A[i - 1][j - W[i]])							
-		
-		if(imprimir):
-			print "Total: {0} Sonrisas".format(A[n][self.capacidadTrineo])
-		
-		return A[n][self.capacidadTrineo]
-	
-	# Valuar juguetes Total
-	def valuarJuguetesTotal(self):
-		cont = 0
-				
-		# Si la lista optima no esta cargada,
-		# la cargo
-		if(len(self.lista_optima) == 0):
-			self.listarFabricas(False)
-		
-		for f in self.lista_optima:
-			sonrisas = None
-			# Convierto a string el Id de la fabrica
-			# para buscarlo en el diccionario
-			id = str(f[2])
-			sonrisas = self.valuarJuguetes(id,False)
-			if(sonrisas != None):
-				cont = cont + sonrisas
-				
-		
-		print "Total: {0} Sonrisas".format(cont)
-	
 	# Camino Optimo
-	def obtenerCaminoOptimo(self,fabricaId):
-		# Busco la fabrica destino
-		fabrica_destino = self.fabricas.get(fabricaId, None)
-		if(fabrica_destino == None):
-			print "Error: la fabrica con id {0} no existe".format(fabricaId)
-			return	
-			
-		# Busco el vertice destino
-		destino = self.vertices.get(fabrica_destino.esquina, None)
+	def calcularCaminoOptimo(self,vertice_id):		
+		# Identifico el destino
+		destino = self.vertices[vertice_id]
 		if(destino == None):
-			print "Error: la esquina con id {0} no existe".format(fabrica_destino.esquina)
+			print "Error: la esquina con id {0} no existe".format(vertice_id)
 			return
-			
+		
 		# Defino una distancia infinita
 		INFINITO = sys.float_info.max
 		
 		# Declaro un vector de distancias
 		# inicializado en infinto
-		Distancia = [INFINITO for x in xrange(len(self.vertices_lista))]
+		Distancia = [INFINITO for x in xrange(len(self.vertices))]		
 		
 		# Declaro un vector de padres
-		Padres = [0 for x in xrange(len(self.vertices_lista))]
+		# inicializado en -1
+		Padres = [-1 for x in xrange(len(self.vertices))]
 		
 		# Declaro un vector de visitados
-		Visitados = [False for x in xrange(len(self.vertices_lista))]
+		# inicializado en False
+		Visitados = [False for x in xrange(len(self.vertices))]
 		
 		# Obtengo el indice del Polo Norte
-		indicePolo = self.vertices_lista.index(self.poloNorte)		
+		indicePolo = self.vertices.index(self.poloNorte)				
 		
 		# Configuro la distancia al Polo Norte en 0
-		Distancia[indicePolo] = 0
+		Distancia[indicePolo] = 0		
 		
 		# Declaro un heap de minima
 		h = []
 		
-		# Declaro un tuple
-		fuente = [Distancia[indicePolo], self.poloNorte]		
+		# Declaro un tuple para agregar al heap
+		# y la prioridad es la distancia
+		origen = [Distancia[indicePolo], self.poloNorte]	
 		
 		# Agrego el tuple al heap 
 		# para ser procesado
-		heapq.heappush(h, fuente)		
+		heapq.heappush(h, origen)		
 		
 		# Proceso todos los nodos de la cola
 		while len(h) != 0:			
-			
+				
 			# Extraigo el de menor distancia
-			u_tuple = heapq.heappop(h)
+			u_tuple = heapq.heappop(h)			
 			
-			u = u_tuple[1]			
+			u = u_tuple[1]		
 			
-			if(u == destino):
-				print "Estoy procesando el nodo destino, deberia terminar"
-				#break
+			indice_u = self.vertices.index(u)						
 			
-			indice_u = self.vertices_lista.index(u)
-			
-			print "Procesando indice {0}".format(indice_u)
+			if(Visitados[indice_u]):
+				continue			
 			
 			# Lo marco como visitado
-			Visitados[indice_u] = True				
+			Visitados[indice_u] = True	
 			
+			# Proceso todos los vertices adyacentes			
+			for vecino in u.vecinos:				
+				alt = Distancia[indice_u] + distanciaEntreVertices(u,vecino)
+							
+				indice_v = self.vertices.index(vecino)
 			
-			# Para todos los adyacentes
-			for a in u.calles:				
-				
-				# Busco el vertice final de la calle
-				vecino = self.vertices.get(a.final, None)
-				if(vecino == None):
-					print "Error: la esquina con id {0} no existe".format(a.final)				
-			
-				alt = Distancia[indice_u] + distanciaEntreVertices(u,vecino)			
-			
-				indice_v = self.vertices_lista.index(vecino)
-			
-				if(alt < Distancia[indice_v]):
-					# print "Actualizo la distancia ya que {0} < {1}".format(alt, Distancia[indice_v])
+				if(alt < Distancia[indice_v]):					
 					Distancia[indice_v] = alt
 					Padres[indice_v] = indice_u
-					if(not Visitados[indice_v]):
+					if(Visitados[indice_v] == False):
 						v_tuple = [Distancia[indice_v], vecino]
 						heapq.heappush(h, v_tuple)
-						
+			
+			if(u == destino):
+				# print "Se porceso el nodo destino, deberia terminar"
+				break							
+			
+			
 		# Obtengo el indice
-		indice_destino = self.vertices_lista.index(destino)
+		indice_destino = self.vertices.index(destino)
 		
 		metros = Distancia[indice_destino]
 		
 		if(metros == sys.float_info.max):
-			print "Distancia es infinito"
+			print "Distancia es infinita"
 			return		
 		
-		print "Distancia: {0} metros".format(int(metros))
+		print "Distancia: {0} metros".format(int(metros))	
 		
+		# Mostrar el camino
+		camino= []
+		indice_padre = indice_destino
 		
+		while indice_padre != -1:
+			v = self.vertices[indice_padre]
+			if(v == None):
+				print "Error: la esquina con id {0} no existe".format(str(indice_padre))	 
 			
+			camino.append(v)
+			indice_padre = Padres[indice_padre]
 			
-			
-			
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		for w in reversed(camino):
+			print "{0}, {1}".format(w.latitud, w.longitud)
+						
