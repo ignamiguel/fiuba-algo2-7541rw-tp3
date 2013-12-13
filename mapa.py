@@ -15,7 +15,5 @@ class vertice_t:
 			return
 		
 		self.vecinos.append(v)
-	
-	def ubicarFabrica(self, f):
-		self.fabrica = f		
+		
 

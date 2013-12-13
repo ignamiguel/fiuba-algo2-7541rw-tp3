@@ -9,7 +9,6 @@ class gestor_t:
 		self.grafo = grafo_t()
 		self.fabricas = []
 		self.fabricas_lista = []
-		# self.poloNorte = None
 		self.capacidadTrineo = 0
 		self.lista_optima = []
 
@@ -63,7 +62,7 @@ class gestor_t:
 		item = []
 		item.append(horario_salida)
 		item.append(horario_entrada)
-		item.append(id)
+		item.append(id)				
 		
 		# Agrego el item a la lista de fabricas
 		self.fabricas_lista.append(item)
@@ -77,7 +76,7 @@ class gestor_t:
 		
 		# Agrego el juguete a la fabrica
 		self.fabricas[fabrica_id].insertarJuguete(id, valor, peso)
-		
+				
 	# Listar Fabricas
 	def listarFabricas(self, imprimir_resultado):
 		# Ordeno las fabricas por 
@@ -117,7 +116,7 @@ class gestor_t:
 	# Valuar juguetes
 	def valuarJuguetes(self, fabrica_id, imprimir_resultado):
 		fabrica_id = int(fabrica_id)
-		f = self.fabricas[fabrica_id]
+		f = self.fabricas[fabrica_id]		
 		if(f == None):
 			print "Error: la fabrica con id {0} no existe".format(fabrica_id)
 			return			
@@ -182,7 +181,7 @@ class gestor_t:
 		fabrica_id = int(fabrica_id)
 		
 		# Busco la fabrica destino		
-		fabrica_destino = self.fabricas[fabrica_id]
+		fabrica_destino = self.fabricas[fabrica_id]		
 		if(fabrica_destino == None):
 			print "Error: la fabrica con id {0} no existe".format(fabrica_id)
 			return
